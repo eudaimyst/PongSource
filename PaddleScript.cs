@@ -22,9 +22,13 @@ public class PaddleScript : MonoBehaviour {
     bool blockedLeft = false;
     bool blockedRight = false;
 
+    Vector3 initialPosition; //used to reset the paddle
+
     // Use this for initialization
     void Start () {
         assignedControllerType = ControllerType.none;
+
+        initialPosition = transform.position;
     }
 	
 	// Update is called once per frame
@@ -44,6 +48,11 @@ public class PaddleScript : MonoBehaviour {
             if (computerControl == null) computerControl = gameObject.AddComponent<ControlComputerScript>();
             computerControl.SetActivePaddle(this);
         }
+    }
+
+    public void ResetPosition()
+    {
+        transform.position = initialPosition;
     }
 
     public void DisablePaddle()

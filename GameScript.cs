@@ -4,20 +4,24 @@ using UnityEngine;
 
 public class GameScript : MonoBehaviour {
 
-    enum GamePaddles {two, four};
-    enum GameState {initialising, ready, running, scored, paused, debug};
-    enum GameRules {classic, testing};
-    enum GamePlayerRules {single, online, local};
+    public enum GamePaddles {two, four};
+    public enum GameState {initialising, ready, running, scored, paused, debug};
+    public enum GameRules {classic, testing};
+    public enum GamePlayerRules {single, online, local};
 
-    struct GameStruct
+    public struct GameStruct
     {
         public GamePaddles paddles;
         public GameState currentState;
         public GameRules rules;
         public GamePlayerRules playerRules;
+        public int[] scores;
+        public string[] names;
     }
 
-    private GameStruct game = new GameStruct();
+    public GameStruct game = new GameStruct();
+
+    private InterfaceScript uiReference;
 
 
     private PaddleScript[] paddles = new PaddleScript[4];
@@ -25,13 +29,16 @@ public class GameScript : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+
         game.currentState = GameState.initialising;
 
         //we will pass the GameStruct values from the main menu but for now...
         game.paddles = GamePaddles.two;
         game.rules = GameRules.classic;
         game.playerRules = GamePlayerRules.single;
-	}
+        game.scores = new int[4];
+        game.names = new string[4];
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -60,6 +67,11 @@ public class GameScript : MonoBehaviour {
         if (game.currentState == GameState.scored)
         {
             ball.ResetPosition();
+            for (var i = 0; i < paddles.Length; i++)
+            {
+                paddles[i].ResetPosition();
+            }
+
             game.currentState = GameState.ready;
         }
     }
@@ -68,6 +80,8 @@ public class GameScript : MonoBehaviour {
     {
 
         ball = GameObject.Find("Ball").GetComponent<BallScript>();
+        uiReference = GameObject.Find("Interface").GetComponent<InterfaceScript>();
+
         if (ball == null) return false;
         else ball.Init(this);
 
@@ -88,6 +102,8 @@ public class GameScript : MonoBehaviour {
                 paddles[1].SetControllerType(2);
                 paddles[2].DisablePaddle();
                 paddles[3].DisablePaddle();
+                game.names[0] = "Player1";
+                game.names[1] = "Player2";
             }
         }
         else if (game.paddles == GamePaddles.four)
@@ -101,13 +117,39 @@ public class GameScript : MonoBehaviour {
             }
         }
 
+
+        if (uiReference == null) return false;
+        else uiReference.Init(this);
+
         return true;
 
     }
 
-    public void Scored()
+    public void Scored(int goalNumber)
     {
-        Debug.Log("SCORED");
         game.currentState = GameState.scored;
+        if (game.paddles == GamePaddles.two)
+        {
+            Debug.Log("SCORED" + goalNumber);
+            if (goalNumber == 0)
+            {
+                game.scores[1] += 1;
+            }
+            if (goalNumber == 1)
+            {
+                game.scores[0] += 1;
+            }
+            uiReference.UpdateScores();
+        }
+        if (game.paddles == GamePaddles.four)
+        {
+            Debug.Log("SCORED" + goalNumber);
+        }
+    }
+
+    public int ReturnNoOfPaddles()
+    {
+        if (game.paddles == GamePaddles.two) return 2;
+        else return 4;
     }
 }

@@ -10,7 +10,9 @@ public class ControlComputerScript : MonoBehaviour {
     float moveFactor;
 
     float randomOffset;
+    float randomOffsetRange = 5f;
     float jitterFactor = 1f; //if paddle is close enough to this point don't do movement to prevent jitter
+    float maxInput = 1f;
 
     Vector3 predictedHitPoint;
     int predictedNextGoal;
@@ -27,20 +29,20 @@ public class ControlComputerScript : MonoBehaviour {
         if (ballReference.ReturnPredictedHitPoint() != predictedHitPoint)
         {
             predictedHitPoint = ballReference.ReturnPredictedHitPoint();
-            randomOffset = Random.Range(-2.5f, 2.5f);
+            randomOffset = Random.Range(-randomOffsetRange, randomOffsetRange);
             predictedNextGoal = ballReference.ReturnPredictedNextGoal();
         }
 
         if (predictedNextGoal == activePaddle.paddlePosition)
         {
-            if (transform.position.y < predictedHitPoint.y - jitterFactor + randomOffset) moveFactor = +.4f;
-            else if (transform.position.y > predictedHitPoint.y + jitterFactor + randomOffset) moveFactor = -.4f;
+            if (transform.position.y < predictedHitPoint.y - jitterFactor + randomOffset) moveFactor = maxInput;
+            else if (transform.position.y > predictedHitPoint.y + jitterFactor + randomOffset) moveFactor = -maxInput;
             else if (transform.position.y > predictedHitPoint.y - jitterFactor + randomOffset && transform.position.y < predictedHitPoint.y + jitterFactor + randomOffset) moveFactor = 0f;
         }
         else
         {
-            if (transform.position.y < -jitterFactor) moveFactor = +.4f;
-            else if (transform.position.y > jitterFactor) moveFactor = -.4f;
+            if (transform.position.y < -jitterFactor) moveFactor = maxInput;
+            else if (transform.position.y > jitterFactor) moveFactor = -maxInput;
             else if (transform.position.y > -jitterFactor && transform.position.y < jitterFactor) moveFactor = 0f;
         }
 
