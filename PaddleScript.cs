@@ -16,7 +16,7 @@ public class PaddleScript : MonoBehaviour {
     public int paddlePosition;
     public MovementDirection movementDirection;
 
-    static float maxMovementDelta = .05f;
+    static float maxMovementDelta = .5f;
     bool blockedUp = false;
     bool blockedDown = false;
     bool blockedLeft = false;
@@ -80,9 +80,9 @@ public class PaddleScript : MonoBehaviour {
         {
             return;
         }
-        float movementAmount = inputAmount * Time.deltaTime;
+        float movementAmount = 200 * inputAmount * Time.deltaTime;
         if (movementDirection == MovementDirection.horizontal) return;
-        transform.position = Vector3.MoveTowards(transform.position, transform.position + new Vector3(0, 0, movementAmount), maxMovementDelta);
+        transform.position = Vector3.MoveTowards(transform.position, transform.position + new Vector3(0, movementAmount, 0), maxMovementDelta);
     }
 
 
@@ -96,7 +96,7 @@ public class PaddleScript : MonoBehaviour {
         {
             return;
         }
-        float movementAmount = inputAmount * Time.deltaTime;
+        float movementAmount = 200 * inputAmount * Time.deltaTime;
         if (movementDirection == MovementDirection.vertical) return;
         transform.position = Vector3.MoveTowards(transform.position, transform.position + new Vector3(movementAmount, 0, 0), maxMovementDelta);
     }
@@ -104,14 +104,15 @@ public class PaddleScript : MonoBehaviour {
 
     //collisions
 
-    void OnTriggerEnter(Collider col)
+    void OnCollisionEnter2D(Collision2D col)
     {
-        if (col.gameObject.name.Contains("Walls"))
+        //Debug.Log("PADDLE enter " + col.name);
+        if (col.collider.name.Contains("Wall"))
         {
-            //Debug.Log("PADDLE enter " + col.gameObject.name + ", " + col.ClosestPoint(transform.position));
+            //Debug.Log("PADDLE enter " + col.gameObject.name);
             if (movementDirection == MovementDirection.vertical)
             {
-                if (col.ClosestPoint(transform.position).z < transform.position.z)
+                if (col.transform.position.y < transform.position.y)
                 {
                     //Debug.Log("hitting down wall");
                     blockedDown = true;
@@ -125,7 +126,7 @@ public class PaddleScript : MonoBehaviour {
 
             if (movementDirection == MovementDirection.horizontal)
             {
-                if (col.ClosestPoint(transform.position).x < transform.position.x)
+                if (col.transform.position.x < transform.position.x)
                 {
                     //Debug.Log("hitting left wall");
                     blockedLeft = true;
@@ -140,14 +141,15 @@ public class PaddleScript : MonoBehaviour {
 
     }
 
-    void OnTriggerExit(Collider col)
+    void OnCollisionExit2D(Collision2D col)
     {
-        if (col.gameObject.name.Contains("Walls"))
+        //Debug.Log("PADDLE exit " + col.name);
+        if (col.collider.name.Contains("Wall"))
         {
-            //Debug.Log("PADDLE exit " + col.gameObject.name + ", " + col.ClosestPoint(transform.position));
+            //Debug.Log("PADDLE exit " + col.gameObject.name);
             if (movementDirection == MovementDirection.vertical)
             {
-                if (col.ClosestPoint(transform.position).z < transform.position.z)
+                if (col.transform.position.y < transform.position.y)
                 {
                     //Debug.Log("hitting down wall");
                     blockedDown = false;
@@ -161,7 +163,7 @@ public class PaddleScript : MonoBehaviour {
 
             if (movementDirection == MovementDirection.horizontal)
             {
-                if (col.ClosestPoint(transform.position).x < transform.position.x)
+                if (col.transform.position.x < transform.position.x)
                 {
                     //Debug.Log("hitting left wall");
                     blockedLeft = false;

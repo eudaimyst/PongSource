@@ -71,7 +71,7 @@ public class GameScript : MonoBehaviour {
         if (ball == null) return false;
         else ball.Init(this);
 
-        //if (GameObject.Find("Player1")) Debug.Log("found"); else Debug.Log("not found");
+        if (GameObject.Find("Player1")) Debug.Log("found"); else Debug.Log("not found");
         for (int i = 0; i < paddles.Length; i++)
         {
             Debug.Log("searching for Paddle" + (i + 1));
