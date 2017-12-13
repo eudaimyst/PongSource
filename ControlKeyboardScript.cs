@@ -13,10 +13,11 @@ public class ControlKeyboardScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
-        activePaddle.MoveVertical(Input.GetAxis("Vertical"));
-        activePaddle.MoveHorizontal(Input.GetAxis("Horizontal"));
-
+        if (activePaddle != null)
+        {
+            activePaddle.MoveVertical(Input.GetAxis("Vertical"));
+            activePaddle.MoveHorizontal(Input.GetAxis("Horizontal"));
+        }
     }
 
     public void SetActivePaddle(PaddleScript paddleReference)

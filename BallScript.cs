@@ -2,27 +2,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BallScript : MonoBehaviour {
+public class BallScript : MonoBehaviour
+{
 
     GameScript gameReference;
 
     Vector3 movementVector;
 
-    Vector3 nextHitPoint; //when getting the next hit point from a raycast, we store the point the ball will hit next 
-    Vector3 nextHitNormal; //and the normal to determine which way the ball will move at the next collision
-    Vector3 finalHitPoint; //do recursive raycasts until we find the hit point that hits the goal/paddle
-    Vector3 prevfinalHitPoint; //we store the previous finalHitPoint in case we can't get a calculation for the next one
-    int predictedNextGoal = 2; //used by controlcomputer based off predictions
 
-    List<Collider2D> collisionList = new List<Collider2D>(); //we going back to collision list so we can see if we're colliding with paddle or wall specifically, and if so ignore goals
     Collider2D colliderHit; //test only checking one collider instead of iterating through a list of all hit.
     bool HitTrigger; //when we hit a trigger set this bool to true, when we process trigger set the bool to false so we don't process the same trigger hit twice
-    
+
     float ballSpeed = 100f;
 
+    public class PredictionInfo //return this class for predictions
+    {
+        public Vector3 finalHitPoint; //the point of the final hit
+        public int bounces = 0; //number of bounces it took to find the final hit point
+        public bool success; //if we found the final hit point successfully
+    }
+
     // Use this for initialization
-    void Start () {
-	}
+    void Start()
+    {
+    }
 
     public void ResetPosition()
     {
@@ -33,24 +36,25 @@ public class BallScript : MonoBehaviour {
     public void ServeTowards(Vector3 servePosition)
     {
         movementVector = Vector3.Normalize(servePosition - transform.position);
-        DoPrediction();
         //GetNextHitPoint();
     }
 
-    public void Init (GameScript g)
+    public void Init(GameScript g)
     {
         gameReference = g;
     }
 
     void HitPaddle(PaddleScript paddle)
     {
+        paddle.PaddleWasHit(); //we call a function on the paddle when it is hit solely so we can run a function on That paddle, which calls computer script to update its random offset
         if (paddle.movementDirection == PaddleScript.MovementDirection.vertical)
         {
             float paddleOffset = (transform.position.y - paddle.transform.position.y) / 3;
             //Debug.Log("vertical PADDLE to ball OFFSET: " + paddleOffset);
             movementVector.y = movementVector.y + paddleOffset;
             movementVector = ReflectHorizontal(movementVector);
-        } else
+        }
+        else
         {
             float paddleOffset = (transform.position.x - paddle.transform.position.x) / 3;
             //Debug.Log("horizontal PADDLE to ball OFFSET: " + paddleOffset);
@@ -74,34 +78,31 @@ public class BallScript : MonoBehaviour {
     Vector3 ReflectHorizontal(Vector3 V)
     {
         //Debug.Log("----REFLECTING HORIZONTAL");
-        return new Vector3(-V.x * .8f, V.y, V.z);
+        return new Vector3(-V.x, V.y * 1.2f, V.z);
     }
 
     Vector3 ReflectVertical(Vector3 V)
     {
         //Debug.Log("----REFLECTING VERTICAL");
-        return new Vector3(V.x, -V.y * .8f, V.z);
+        return new Vector3(V.x * 1.2f, -V.y, V.z);
     }
 
-    void DoPrediction()
+    public PredictionInfo DoPrediction(int paddlePosition)
     {
-        if (finalHitPoint != Vector3.zero)
-        {
-            prevfinalHitPoint = finalHitPoint;
-        }
-        finalHitPoint = Vector3.zero;
+        Color debugColor = Color.black;
+        if (paddlePosition == 0) debugColor = Color.red;
+        if (paddlePosition == 1) debugColor = Color.blue;
+
+        int nextGoal = 0; //temp variable just to store the next goal we hit to check against paddle position
         RaycastHit2D[] predictedHits = new RaycastHit2D[10];
         Vector2[] predictedMovementVectors = new Vector2[11];
         RaycastHit2D[] allColliders = new RaycastHit2D[10]; //we need to do a RaycastAll for each raycast to remove if we started inside a collider (not iterated, raycast should never pass through more than 5 colliders(?))
+        PredictionInfo predictionInfo = new PredictionInfo();
 
-        int i = 0;
-        while (finalHitPoint == Vector3.zero)
+        for (var i = 0; i < 10; i++)
         {
-            if (i > 9) {
-                //Debug.Log("Failed to find bounce that didnt hit wall after 10 bounces, giving up on finding final point");
-                finalHitPoint = prevfinalHitPoint;
-                return;
-            }
+            //Debug.Log("prediction point " + i);
+            //first prediction
             if (i == 0)
             {
                 // bit shift the index of the layer to get a bit mask
@@ -109,76 +110,79 @@ public class BallScript : MonoBehaviour {
                 Debug.DrawLine(transform.position, predictedHits[i].point, Color.grey, .5f);
                 predictedMovementVectors[i] = movementVector;
             }
+            //all other predictions
             else
             {
-                allColliders = Physics2D.RaycastAll(predictedHits[i - 1].point, predictedMovementVectors[i], 300f, 1 << 8); // bit shift the index of the layer to get a bit mask
-                if (allColliders.Length > 1)
+                if (predictedHits[i - 1].collider != null) //if the previous iterations raycast found a collider
                 {
-                    if (allColliders[0].collider == predictedHits[i - 1].collider) predictedHits[i] = allColliders[1]; //we started inside the collider we hit previously so we will ignore it
-                    else predictedHits[i] = allColliders[0];
-                    Debug.DrawLine(predictedHits[i - 1].point, predictedHits[i].point, Color.grey, .5f);
-                    //Debug.Log("Prediction Bounce: " + i + " -- Hit collider name: " + predictedHits[i].collider.name);
+                    if (predictedHits[i - 1].collider.name.Contains("Wall") || predictedHits[i - 1].collider.name.Contains("Prediction")) //reflect previous iterations movement vector to use for this ray
+                    {
+                        if (predictedHits[i - 1].collider.name.Contains("Vertical")) predictedMovementVectors[i] = ReflectHorizontal(predictedMovementVectors[i - 1]);
+                        if (predictedHits[i - 1].collider.name.Contains("Horizontal")) predictedMovementVectors[i] = ReflectVertical(predictedMovementVectors[i - 1]);
+                    }
+                    //do raycast
+                    allColliders = Physics2D.RaycastAll(predictedHits[i - 1].point, predictedMovementVectors[i], 300f, 1 << 8); // bit shift the index of the layer to get a bit mask
+                    if (allColliders.Length > 1)
+                    {
+                        if (allColliders[0].collider == predictedHits[i - 1].collider)
+                        {
+                            predictedHits[i] = allColliders[1]; //we started inside the collider we hit previously so we will ignore it
+                            Debug.DrawLine(predictedHits[i - 1].point, predictedHits[i].point, debugColor, .5f);
+                            //Debug.Log("Prediction Bounce: " + i + " -- Hit collider name: " + predictedHits[i].collider.name);
+                        }
+                    }
                 }
-            }
 
+            }
+            //after we have our predicted hit for this iteration, check collisions to see if prediction hits the goal
             if (predictedHits[i].collider != null)
             {
-                if (predictedHits[i].collider.name.Contains("Vertical")) //predicted ray hit a vertical wall
+                if (predictedHits[i].collider.name.Contains("Prediction"))
                 {
-                    predictedMovementVectors[i + 1] = ReflectHorizontal(predictedMovementVectors[i]);
-                }
-                if (predictedHits[i].collider.name.Contains("Horizontal")) //predicted ray hit Horizontal wall
-                {
-                    predictedMovementVectors[i + 1] = ReflectVertical(predictedMovementVectors[i]);
-                }
-                if (predictedHits[i].collider.name.Contains("Goal"))
-                {
-
-                    if (gameReference.ReturnNoOfPaddles() == 2)
+                    if (predictedHits[i].collider.name.Contains("1")) nextGoal = 0;
+                    else if (predictedHits[i].collider.name.Contains("2")) nextGoal = 1;
+                    else if (predictedHits[i].collider.name.Contains("3")) nextGoal = 2;
+                    else if (predictedHits[i].collider.name.Contains("4")) nextGoal = 3;
+                    if (nextGoal == paddlePosition) //this ray collides with a goal that IS our paddles
                     {
-                        if (predictedHits[i].collider.name.Contains("1"))
-                        {
-                            finalHitPoint = predictedHits[i].point;
-                            predictedNextGoal = 0;
-                        }
-                        else if (predictedHits[i].collider.name.Contains("2"))
-                        {
-                            finalHitPoint = predictedHits[i].point;
-                            predictedNextGoal = 1;
-                        }
-                    }
-                    else
-                    {
-                        finalHitPoint = predictedHits[i].point;
-                        if (predictedHits[i].collider.name.Contains("1")) predictedNextGoal = 0;
-                        else if (predictedHits[i].collider.name.Contains("2")) predictedNextGoal = 1;
-                        else if (predictedHits[i].collider.name.Contains("3")) predictedNextGoal = 3;
-                        else if (predictedHits[i].collider.name.Contains("4")) predictedNextGoal = 4;
+                        predictionInfo.finalHitPoint = predictedHits[i].point;
+                        predictionInfo.bounces = i;
+                        predictionInfo.success = true;
+                        return predictionInfo;
                     }
                 }
             }
-            i++;
         }
+        //end of for loop
+        //Debug.Log("Failed to find bounce that didnt hit wall after 10 bounces, giving up on finding final point");
+        predictionInfo.finalHitPoint = Vector3.zero;
+        predictionInfo.bounces = 0;
+        predictionInfo.success = false;
+        return predictionInfo;
     }
 
     //Update is called once per frame=
     void FixedUpdate()
     {
         //draw gizmo
-        Debug.DrawLine(transform.position, transform.position + movementVector * 30, Color.blue);
+        Debug.DrawLine(transform.position, transform.position + movementVector * 30, Color.white);
 
         //move ball
         transform.position = Vector3.MoveTowards(transform.position, transform.position + movementVector * 30, ballSpeed * Time.fixedDeltaTime);
     }
 
-    
-    
+
+
 
     // this is Triggered collision logic
 
     void OnCollisionEnter2D(Collision2D col)
     {
-        if (HitTrigger == false || (col.collider.name.Contains("Wall") && colliderHit.name.Contains("Wall") ))
+
+        //we have this if because if we don't if the ball hits paddle and wall at same time it processes both movement and double reflects
+        //the second part is because if we don't it will ignore double wall hits as well if they happen quick enough together
+        //so we let wall hit collision logic go through if we're already processing another wall hit
+        if (HitTrigger == false || (col.collider.name.Contains("Wall") && colliderHit.name.Contains("Wall")))
         {
             HitTrigger = true;
             colliderHit = col.collider;
@@ -187,15 +191,17 @@ public class BallScript : MonoBehaviour {
             if (col.collider.name.Contains("Paddle"))
             {
                 HitPaddle(col.gameObject.GetComponent<PaddleScript>());
-                DoPrediction();
+                gameReference.PaddleWasHit(); //we call a function in game reference that a paddle was hit, solely so we can run a function on all paddles, that calls computer script to update prediction
             }
             if (col.collider.name.Contains("Wall"))
             {
                 ProcessBallHit(col);
-                DoPrediction();
             }
         }
-
+        else
+        {
+            //Debug.Log("IGNORED COLLISION!!!!!! ON " + col.collider.name);
+        }
     }
 
     void OnCollisionExit2D(Collision2D col)
@@ -214,20 +220,5 @@ public class BallScript : MonoBehaviour {
             if (col.gameObject.name.Contains("4")) gameReference.Scored(3);
         }
     }
-    
 
-
-
-    //these are called by computercontrolscript to get where the paddle should move to
-    public Vector3 ReturnPredictedHitPoint()
-    {
-        return finalHitPoint;
-    }
-    public int ReturnPredictedNextGoal()
-    {
-        return predictedNextGoal;
-    }
-
-
-    
 }

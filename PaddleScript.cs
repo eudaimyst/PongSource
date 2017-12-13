@@ -29,24 +29,43 @@ public class PaddleScript : MonoBehaviour {
         assignedControllerType = ControllerType.none;
 
         initialPosition = transform.position;
-    }
+
+        keyboardControl = gameObject.AddComponent<ControlKeyboardScript>();
+        keyboardControl.SetInactive();
+        mouseControl = gameObject.AddComponent<ControlMouseScript>();
+        mouseControl.SetInactive();
+        computerControl = gameObject.AddComponent<ControlComputerScript>();
+        computerControl.SetInactive();
+}
 	
 	// Update is called once per frame
 	void Update () {
 		if (assignedControllerType == ControllerType.keyboard)
         {
-            if (keyboardControl == null) keyboardControl = gameObject.AddComponent<ControlKeyboardScript>();
             keyboardControl.SetActivePaddle(this);
         }
         if (assignedControllerType == ControllerType.mouse)
         {
-            if (mouseControl == null) mouseControl = gameObject.AddComponent<ControlMouseScript>();
             mouseControl.SetActivePaddle(this);
         }
         if (assignedControllerType == ControllerType.computer)
         {
-            if (computerControl == null) computerControl = gameObject.AddComponent<ControlComputerScript>();
             computerControl.SetActivePaddle(this);
+        }
+    }
+    public void PaddleWasHit()
+    {
+        if (assignedControllerType == ControllerType.computer)
+        {
+            computerControl.SetNewOffset();
+        }
+    }
+
+    public void DoComputerPrediction()
+    {
+        if (assignedControllerType == ControllerType.computer )
+        {
+            computerControl.DoPrediction();
         }
     }
 

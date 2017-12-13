@@ -23,6 +23,8 @@ public class GameScript : MonoBehaviour {
 
     private InterfaceScript uiReference;
 
+    int playerThatScored;
+    int playerThatGotScoredOn = 5;
 
     private PaddleScript[] paddles = new PaddleScript[4];
     private BallScript ball;
@@ -57,7 +59,15 @@ public class GameScript : MonoBehaviour {
         if (game.currentState == GameState.ready)
         {
             Debug.Log("SERVING!!!");
-            ball.ServeTowards(paddles[1].transform.position);
+            if (playerThatGotScoredOn == 5) //first server
+            {
+                ball.ServeTowards(paddles[Mathf.FloorToInt(Random.Range(0f, 2f))].transform.position);
+            }
+            else
+            {
+                ball.ServeTowards(paddles[playerThatGotScoredOn].transform.position);
+            }
+            TriggerPaddlePrediction();
             game.currentState = GameState.running;
         }
         if (game.currentState == GameState.running)
@@ -133,12 +143,14 @@ public class GameScript : MonoBehaviour {
             Debug.Log("SCORED" + goalNumber);
             if (goalNumber == 0)
             {
-                game.scores[1] += 1;
+                playerThatScored = 1;
             }
             if (goalNumber == 1)
             {
-                game.scores[0] += 1;
+                playerThatScored = 0;
             }
+            playerThatGotScoredOn = goalNumber;
+            game.scores[playerThatScored] += 1;
             uiReference.UpdateScores();
         }
         if (game.paddles == GamePaddles.four)
@@ -151,5 +163,26 @@ public class GameScript : MonoBehaviour {
     {
         if (game.paddles == GamePaddles.two) return 2;
         else return 4;
+    }
+
+    public void PaddleWasHit() //when a paddle is hit this function is called from ballscript, solely so we can run a function on all paddles, that calls computer script to update prediction
+    {
+        TriggerPaddlePrediction();
+    }
+
+    void TriggerPaddlePrediction() //when a paddle is hit this function is called from ballscript, solely so we can run a function on all paddles, that calls computer script to update prediction
+    {
+        if (game.paddles == GamePaddles.two)
+        {
+            paddles[0].DoComputerPrediction();
+            paddles[1].DoComputerPrediction();
+        }
+        else if (game.paddles == GamePaddles.four)
+        {
+            paddles[0].DoComputerPrediction();
+            paddles[1].DoComputerPrediction();
+            paddles[2].DoComputerPrediction();
+            paddles[3].DoComputerPrediction();
+        }
     }
 }
