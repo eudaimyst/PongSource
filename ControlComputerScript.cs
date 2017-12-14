@@ -10,12 +10,12 @@ public class ControlComputerScript : MonoBehaviour {
     float moveFactor;
 
     float randomOffset;
-    float randomOffsetRange = 5f; //maximum distance for random offset
+    float randomOffsetRange = 4f; //maximum distance for random offset
     float timeSinceLastOffsetChange;
-    float offsetChangeTimer = 100f; //how often to pick a new random Offset (lower is higher difficulty because less prediction possible)
+    float offsetChangeTimer = .7f; //how often to pick a new random Offset (lower is higher difficulty because less prediction possible)
 
     float jitterFactor = .5f; //if paddle is close enough to this point don't do movement to prevent jitter
-    float maxInput = 1f;
+    float maxInput = 10f;
 
     float timeSinceLastPrediction = 0f;
     
@@ -30,7 +30,7 @@ public class ControlComputerScript : MonoBehaviour {
     {
         SetNewOffset();
 
-        ballReference = GameObject.Find("Ball").GetComponent<BallScript>();
+        ballReference = GameObject.Find("PhysicsBall").GetComponent<BallScript>();
 
     }
 	
@@ -54,7 +54,7 @@ public class ControlComputerScript : MonoBehaviour {
         }
         if (predictionConfidence == 0)
         {
-            if (timeSinceLastPrediction > .3f)
+            if (timeSinceLastPrediction > .1f)
             {
                 DoPrediction();
             }
@@ -105,7 +105,7 @@ public class ControlComputerScript : MonoBehaviour {
             //Debug.Log("PREDICTION SUCCESS !!!!!!!!!!!!!");
 
             predictedHitPoint = predictionInfo.finalHitPoint;
-            Debug.DrawLine(transform.position, predictedHitPoint, Color.yellow, 1f);
+            Debug.DrawLine(transform.position, predictedHitPoint, Color.yellow, .2f);
 
             /* prediction confidence not working
             if (predictionInfo.bounces == 0) //if only one bounce and a success, do another prediction to confirm it's accuracy

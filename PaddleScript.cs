@@ -16,7 +16,7 @@ public class PaddleScript : MonoBehaviour {
     public int paddlePosition;
     public MovementDirection movementDirection;
 
-    static float maxMovementDelta = .5f;
+    static float maxMovementDelta = .75f;
     bool blockedUp = false;
     bool blockedDown = false;
     bool blockedLeft = false;

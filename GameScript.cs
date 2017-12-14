@@ -26,7 +26,7 @@ public class GameScript : MonoBehaviour {
     int playerThatScored;
     int playerThatGotScoredOn = 5;
 
-    private PaddleScript[] paddles = new PaddleScript[4];
+    public PaddleScript[] paddles = new PaddleScript[4];
     private BallScript ball;
 
     // Use this for initialization
@@ -89,7 +89,7 @@ public class GameScript : MonoBehaviour {
     bool InitialiseGameState()
     {
 
-        ball = GameObject.Find("Ball").GetComponent<BallScript>();
+        ball = GameObject.Find("PhysicsBall").GetComponent<BallScript>();
         uiReference = GameObject.Find("Interface").GetComponent<InterfaceScript>();
 
         if (ball == null) return false;
@@ -120,7 +120,7 @@ public class GameScript : MonoBehaviour {
         {
             if (game.playerRules == GamePlayerRules.single)
             {
-                paddles[0].SetControllerType(0); //controller type 0 = keyboard, 1 = mouse, 2 = computer
+                paddles[0].SetControllerType(2); //controller type 0 = keyboard, 1 = mouse, 2 = computer
                 paddles[1].SetControllerType(2);
                 paddles[2].SetControllerType(2);
                 paddles[3].SetControllerType(2);
