@@ -22,8 +22,6 @@ public class ControlComputerScript : MonoBehaviour {
     Vector3 predictedHitPoint = Vector3.zero;
     BallScript.PredictionInfo predictionInfo;
     int predictionConfidence = 0; //higher is more confident
-    Vector3 hitPointToConfirm = Vector3.zero;
-    bool doConfirmPrediction;
 
     // Use this for initialization
     void Start ()
@@ -48,10 +46,6 @@ public class ControlComputerScript : MonoBehaviour {
             timeSinceLastOffsetChange = 0f;
         }
         
-        if (doConfirmPrediction)
-        {
-            DoPrediction();
-        }
         if (predictionConfidence == 0)
         {
             if (timeSinceLastPrediction > .1f)
