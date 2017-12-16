@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class MenuSettingsScript : MonoBehaviour {
 
+    //attached to settings panel, handles all logic for settings menu
+
     public GameObject subsettingsHolder; //this is a child of the mask object, we move this up and down in relation to the scrollbar
     public Scrollbar settingsScrollbar;
 
@@ -56,6 +58,12 @@ public class MenuSettingsScript : MonoBehaviour {
         developerSettingsHeight = developerSettingsPanel.rect.height;
 
         UpdatePositions();
+        ToggleCameraSettings();
+        ToggleControlsSettings();
+        ToggleDeveloperSettings();
+        ToggleGameplaySettings();
+        ToggleGraphicsSettings();
+        ToggleSoundSettings();
     }
 	
 	// Update is called once per frame
@@ -202,14 +210,14 @@ public class MenuSettingsScript : MonoBehaviour {
     //called whenever we maximize any button or when settings open, moves each subsetting panel into positions based oon whether others are open or close
     void UpdatePositions()
     {
-        cameraSettingsPanel.localPosition = new Vector2(0f, 0f);
+        cameraSettingsPanel.localPosition = new Vector2(0f, -5f);
         controlsSettingsPanel.localPosition = new Vector2(0f, -cameraSettingsPanel.rect.height - 10f);
-        graphicsSettingsPanel.localPosition = new Vector2(0f, -cameraSettingsPanel.rect.height -controlsSettingsPanel.rect.height - 20f);
-        gameplaySettingsPanel.localPosition = new Vector2(0f, -cameraSettingsPanel.rect.height -controlsSettingsPanel.rect.height -graphicsSettingsPanel.rect.height - 30f);
-        soundSettingsPanel.localPosition = new Vector2(0f, -cameraSettingsPanel.rect.height -controlsSettingsPanel.rect.height -graphicsSettingsPanel.rect.height -gameplaySettingsPanel.rect.height - 40f);
-        developerSettingsPanel.localPosition = new Vector2(0f, -cameraSettingsPanel.rect.height -controlsSettingsPanel.rect.height -graphicsSettingsPanel.rect.height -gameplaySettingsPanel.rect.height -soundSettingsPanel.rect.height - 50f);
+        graphicsSettingsPanel.localPosition = new Vector2(0f, -cameraSettingsPanel.rect.height -controlsSettingsPanel.rect.height - 15f);
+        gameplaySettingsPanel.localPosition = new Vector2(0f, -cameraSettingsPanel.rect.height -controlsSettingsPanel.rect.height -graphicsSettingsPanel.rect.height - 20f);
+        soundSettingsPanel.localPosition = new Vector2(0f, -cameraSettingsPanel.rect.height -controlsSettingsPanel.rect.height -graphicsSettingsPanel.rect.height -gameplaySettingsPanel.rect.height - 25f);
+        developerSettingsPanel.localPosition = new Vector2(0f, -cameraSettingsPanel.rect.height -controlsSettingsPanel.rect.height -graphicsSettingsPanel.rect.height -gameplaySettingsPanel.rect.height -soundSettingsPanel.rect.height - 30f);
 
-        subsettingsTotalHeight = cameraSettingsPanel.rect.height + controlsSettingsPanel.rect.height + graphicsSettingsPanel.rect.height + gameplaySettingsPanel.rect.height + soundSettingsPanel.rect.height + developerSettingsPanel.rect.height + 50f;
+        subsettingsTotalHeight = cameraSettingsPanel.rect.height + controlsSettingsPanel.rect.height + graphicsSettingsPanel.rect.height + gameplaySettingsPanel.rect.height + soundSettingsPanel.rect.height + developerSettingsPanel.rect.height + 35f;
     }
 
     //called when scrollbar value changes
