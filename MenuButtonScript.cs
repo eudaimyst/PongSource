@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class MenuButtonScript : MonoBehaviour {
 
@@ -17,16 +21,31 @@ public class MenuButtonScript : MonoBehaviour {
     public enum SettingsDropdowns { none, controller1, controller2, controller3, controller4, graphicsQuality };
     public SettingsDropdowns settingsDropdown;
 
+    public enum CustomGameDropdowns { none, gameplayRules, pointLimit, rounds, slotController1, slotController2, slotController3, slotController4};
+    public CustomGameDropdowns customGameDropdown;
+
+    public enum CustomGameSliders { none, ballSpeed, paddleSpeed, pcAggressive, pcResponsive}
+    public CustomGameSliders customGameSlider;
+
+    public enum CustomGameToggles { none, roomIsPublic }
+    public CustomGameToggles customGameToggles;
+
+    public enum CustomGameInput { none, roomName }
+    public CustomGameInput customGameInput;
+
     Button buttonReference;
 
     MenuMainScript mainMenu;
     SettingsScript settingsScript;
+    SettingsCustomGameScript settingsCustomGameScript;
 
     // Use this for initialization
     void Start () {
 
         mainMenu = GameObject.Find("MenuScript").GetComponent<MenuMainScript>();
         settingsScript = GameObject.Find("SettingsHolder").GetComponent<SettingsScript>();
+        settingsCustomGameScript = GameObject.Find("SettingsHolder").GetComponent<SettingsCustomGameScript>();
+        DontDestroyOnLoad(settingsScript.gameObject);
 
         buttonReference = GetComponent<Button>();
 
@@ -50,7 +69,7 @@ public class MenuButtonScript : MonoBehaviour {
         Debug.Log("Button pressed " + menuOption);
         if (menuOption == MenuOptions.Classic)
         {
-
+            SceneManager.LoadScene("2DGameScene");
         }
         else if (menuOption == MenuOptions.Campaign)
         {
@@ -74,8 +93,10 @@ public class MenuButtonScript : MonoBehaviour {
         }
         else if (menuOption == MenuOptions.Quit)
         {
+#if UNITY_EDITOR
             if (UnityEditor.EditorApplication.isPlaying) UnityEditor.EditorApplication.isPlaying = false;
-            else Application.Quit();
+#endif
+            Application.Quit();
         }
         else if (menuOption == MenuOptions.BackToMainMenu)
         {
@@ -127,6 +148,30 @@ public class MenuButtonScript : MonoBehaviour {
         {
             settingsScript.soundMusicVolume = value;
             GameObject.Find("MusicVolumeValueText").GetComponent<Text>().text = value.ToString();
+        }
+
+        if (customGameSlider == CustomGameSliders.ballSpeed)
+        {
+            settingsCustomGameScript.ballSpeed = value;
+            GameObject.Find("BallSpeedValueText").GetComponent<Text>().text = value.ToString();
+        }
+
+        if (customGameSlider == CustomGameSliders.paddleSpeed)
+        {
+            settingsCustomGameScript.paddleSpeed = value;
+            GameObject.Find("PaddleSpeedValueText").GetComponent<Text>().text = value.ToString();
+        }
+
+        if (customGameSlider == CustomGameSliders.pcAggressive)
+        {
+            settingsCustomGameScript.pcAggressive = value;
+            GameObject.Find("AggressiveValueText").GetComponent<Text>().text = value.ToString();
+        }
+
+        if (customGameSlider == CustomGameSliders.pcResponsive)
+        {
+            settingsCustomGameScript.pcResponsive = value;
+            GameObject.Find("ResponsiveValueText").GetComponent<Text>().text = value.ToString();
         }
     }
 
@@ -207,6 +252,11 @@ public class MenuButtonScript : MonoBehaviour {
         {
             settingsScript.gameplayHitEffects = value;
         }
+
+        if (customGameToggles == CustomGameToggles.roomIsPublic)
+        {
+            settingsCustomGameScript.roomIsPublic = value;
+        }
     }
 
     public void DropdownAction(int value)
@@ -232,6 +282,100 @@ public class MenuButtonScript : MonoBehaviour {
         if (settingsDropdown == SettingsDropdowns.graphicsQuality)
         {
             settingsScript.graphicsQuality = value;
+        }
+        if (customGameDropdown == CustomGameDropdowns.gameplayRules)
+        {
+            settingsCustomGameScript.gameplayRules = value;
+            if (value == 0 || value == 1)
+            {
+                GameObject.Find("Slot3Dropdown").GetComponent<Dropdown>().interactable = false;
+                GameObject.Find("Slot4Dropdown").GetComponent<Dropdown>().interactable = false;
+                GameObject.Find("PointsDropdown").GetComponent<Dropdown>().interactable = true;
+                GameObject.Find("RoundsDropdown").GetComponent<Dropdown>().interactable = true;
+            }
+            else if (value == 2)
+            {
+                GameObject.Find("Slot3Dropdown").GetComponent<Dropdown>().interactable = true;
+                GameObject.Find("Slot4Dropdown").GetComponent<Dropdown>().interactable = true;
+                GameObject.Find("PointsDropdown").GetComponent<Dropdown>().interactable = false;
+                GameObject.Find("PointsDropdown").GetComponent<Dropdown>().value = 5;
+                GameObject.Find("RoundsDropdown").GetComponent<Dropdown>().interactable = false;
+            }
+        }
+        if (customGameDropdown == CustomGameDropdowns.pointLimit)
+        {
+            settingsCustomGameScript.pointLimit = value;
+            if (value == 5) //infinite point limit
+            {
+                GameObject.Find("RoundsDropdown").GetComponent<Dropdown>().interactable = false;
+            }
+            else
+            {
+                GameObject.Find("RoundsDropdown").GetComponent<Dropdown>().interactable = true;
+            }
+        }
+        if (customGameDropdown == CustomGameDropdowns.rounds)
+        {
+            settingsCustomGameScript.rounds = value;
+        }
+        if (customGameDropdown == CustomGameDropdowns.slotController1)
+        {
+            settingsCustomGameScript.slotControl1 = value;
+            DisableComputerOrMultiplayerInput();
+        }
+        if (customGameDropdown == CustomGameDropdowns.slotController2)
+        {
+            settingsCustomGameScript.slotControl2 = value;
+            DisableComputerOrMultiplayerInput();
+        }
+        if (customGameDropdown == CustomGameDropdowns.slotController3)
+        {
+            settingsCustomGameScript.slotControl3 = value;
+            DisableComputerOrMultiplayerInput();
+        }
+        if (customGameDropdown == CustomGameDropdowns.slotController4)
+        {
+            settingsCustomGameScript.slotControl4 = value;
+            DisableComputerOrMultiplayerInput();
+        }
+    }
+
+    public void InputAction(string value)
+    {
+        if (customGameInput == CustomGameInput.roomName)
+        {
+            settingsCustomGameScript.roomName = value;
+        }
+    }
+
+    public void DisableComputerOrMultiplayerInput() //used for custom game settings to disable name input or sliders for computer settings if they're not in active slots
+    {
+        if (GameObject.Find("Slot1Dropdown").GetComponent<Dropdown>().value == 1 || GameObject.Find("Slot2Dropdown").GetComponent<Dropdown>().value == 1 || GameObject.Find("Slot3Dropdown").GetComponent<Dropdown>().value == 1 || GameObject.Find("Slot4Dropdown").GetComponent<Dropdown>().value == 1)
+        {
+            Debug.Log("online settings enabled");
+            GameObject.Find("RoomNameInput").GetComponent<InputField>().interactable = true;
+            GameObject.Find("RoomNameInput").GetComponent<InputField>().readOnly = false;
+            GameObject.Find("PublicToggle").GetComponent<Toggle>().isOn = false;
+            GameObject.Find("PublicToggle").GetComponent<Toggle>().interactable = true;
+        }
+        else
+        {
+            Debug.Log("online settings disabled");
+            GameObject.Find("RoomNameInput").GetComponent<InputField>().interactable = false;
+            GameObject.Find("RoomNameInput").GetComponent<InputField>().readOnly = true;
+            GameObject.Find("PublicToggle").GetComponent<Toggle>().interactable = false;
+        }
+        if (GameObject.Find("Slot1Dropdown").GetComponent<Dropdown>().value == 2 || GameObject.Find("Slot2Dropdown").GetComponent<Dropdown>().value == 2 || GameObject.Find("Slot3Dropdown").GetComponent<Dropdown>().value == 2 || GameObject.Find("Slot4Dropdown").GetComponent<Dropdown>().value == 2)
+        {
+            Debug.Log("computer settings enabled");
+            GameObject.Find("AggressiveSlider").GetComponent<Slider>().interactable = true;
+            GameObject.Find("ResponsiveSlider").GetComponent<Slider>().interactable = true;
+        }
+        else
+        {
+            Debug.Log("computer settings disabled");
+            GameObject.Find("AggressiveSlider").GetComponent<Slider>().interactable = false;
+            GameObject.Find("ResponsiveSlider").GetComponent<Slider>().interactable = false;
         }
     }
 

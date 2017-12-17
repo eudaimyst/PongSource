@@ -28,6 +28,11 @@ public class GameScript : MonoBehaviour {
 
     public PaddleScript[] paddles = new PaddleScript[4];
     private BallScript ball;
+    public GameObject settingsHolder;
+    public SettingsScript settingsScript;
+
+    public Camera camera2DRef;
+    public Camera camera3DRef;
 
     // Use this for initialization
     void Start () {
@@ -40,6 +45,7 @@ public class GameScript : MonoBehaviour {
         game.playerRules = GamePlayerRules.single;
         game.scores = new int[4];
         game.names = new string[4];
+
     }
 	
 	// Update is called once per frame
@@ -91,6 +97,9 @@ public class GameScript : MonoBehaviour {
 
         ball = GameObject.Find("PhysicsBall").GetComponent<BallScript>();
         uiReference = GameObject.Find("Interface").GetComponent<InterfaceScript>();
+        camera2DRef = GameObject.Find("TopDownCamera").GetComponent<Camera>();
+        camera3DRef = GameObject.Find("PerspectiveCamera").GetComponent<Camera>();
+
 
         if (ball == null) return false;
         else ball.Init(this);
@@ -130,6 +139,12 @@ public class GameScript : MonoBehaviour {
 
         if (uiReference == null) return false;
         else uiReference.Init(this);
+
+        if (LoadSettings() == false)
+        {
+            Debug.Log("could not load settings");
+            return false;
+        }
 
         return true;
 
@@ -185,4 +200,37 @@ public class GameScript : MonoBehaviour {
             paddles[3].DoComputerPrediction();
         }
     }
+
+    public bool LoadSettings()
+    {
+        settingsHolder = GameObject.Find("SettingsHolder");
+        if (settingsHolder == null)
+        {
+            Debug.Log("unable to find settings holder, somethings gone wrong with how this seen was loaded");
+            return false;
+        }
+        else
+        {
+            settingsScript = settingsHolder.GetComponent<SettingsScript>();
+        }
+
+        if (settingsScript.camera3D)
+        {
+            camera3DRef.enabled = true;
+            camera2DRef.enabled = false;
+            camera2DRef.gameObject.GetComponent<FlareLayer>().enabled = false;
+            camera2DRef.gameObject.GetComponent<AudioListener>().enabled = false;
+        }
+        else
+        {
+            camera2DRef.enabled = true;
+            camera3DRef.enabled = false;
+            camera3DRef.gameObject.GetComponent<FlareLayer>().enabled = false;
+            camera3DRef.gameObject.GetComponent<AudioListener>().enabled = false;
+        }
+
+        return true;
+    }
+
+
 }

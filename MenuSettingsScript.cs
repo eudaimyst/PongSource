@@ -210,6 +210,7 @@ public class MenuSettingsScript : MonoBehaviour {
     //called whenever we maximize any button or when settings open, moves each subsetting panel into positions based oon whether others are open or close
     void UpdatePositions()
     {
+
         cameraSettingsPanel.localPosition = new Vector2(0f, -5f);
         controlsSettingsPanel.localPosition = new Vector2(0f, -cameraSettingsPanel.rect.height - 10f);
         graphicsSettingsPanel.localPosition = new Vector2(0f, -cameraSettingsPanel.rect.height -controlsSettingsPanel.rect.height - 15f);
@@ -218,9 +219,11 @@ public class MenuSettingsScript : MonoBehaviour {
         developerSettingsPanel.localPosition = new Vector2(0f, -cameraSettingsPanel.rect.height -controlsSettingsPanel.rect.height -graphicsSettingsPanel.rect.height -gameplaySettingsPanel.rect.height -soundSettingsPanel.rect.height - 30f);
 
         subsettingsTotalHeight = cameraSettingsPanel.rect.height + controlsSettingsPanel.rect.height + graphicsSettingsPanel.rect.height + gameplaySettingsPanel.rect.height + soundSettingsPanel.rect.height + developerSettingsPanel.rect.height + 35f;
+
+        ScrollbarUpdate();
     }
 
-    //called when scrollbar value changes
+    //called when scrollbar value changes (and when we max/min panels)
     public void ScrollbarUpdate()
     {
         subsettingsHolder.transform.localPosition = new Vector2(-8f, settingsScrollbar.value * (subsettingsTotalHeight - 145f) + 145f);
