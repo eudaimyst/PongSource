@@ -3,21 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GameScript : MonoBehaviour {
-
-    public enum GamePaddles {two, four};
+    
     public enum GameState {initialising, ready, running, scored, paused, debug};
-    public enum GameRules {classic, testing};
-    public enum GamePlayerRules {single, online, local};
+    public enum GameRules {classic, modern, fourplayer};
+    public enum PlayerType {local, online, computer};
 
     public struct GameStruct
     {
-        public GamePaddles paddles;
         public GameState currentState;
         public GameRules rules;
-        public GamePlayerRules playerRules;
+        public PlayerType[] playerRules;
+        public int numberOfPaddles;
         public int[] scores;
         public string[] names;
     }
+
+
 
     public GameStruct game = new GameStruct();
 
@@ -30,6 +31,7 @@ public class GameScript : MonoBehaviour {
     private BallScript ball;
     public GameObject settingsHolder;
     public SettingsScript settingsScript;
+    public SettingsCustomGameScript customGameScript;
 
     public Camera camera2DRef;
     public Camera camera3DRef;
@@ -39,18 +41,10 @@ public class GameScript : MonoBehaviour {
 
         game.currentState = GameState.initialising;
 
-        //we will pass the GameStruct values from the main menu but for now...
-        game.paddles = GamePaddles.two;
-        game.rules = GameRules.classic;
-        game.playerRules = GamePlayerRules.single;
-        game.scores = new int[4];
-        game.names = new string[4];
 
-    }
-	
-	// Update is called once per frame
-	void Update () {
-		if (game.currentState == GameState.initialising)
+
+        //first thing we do when loading into the level
+        if (game.currentState == GameState.initialising)
         {
             if (InitialiseGameState() == true)
             {
@@ -62,6 +56,21 @@ public class GameScript : MonoBehaviour {
                 Debug.Log("unable to initialise");
             }
         }
+
+        //we will pass the GameStruct values from the main menu but for now...
+        /*
+        game.numberOfPaddles = GamePaddles.two
+        game.rules = GameRules.classic;
+        game.playerRules = GamePlayerRules.single;
+        game.scores = new int[4];
+        game.names = new string[4];
+        */
+    }
+
+    // Update is called once per frame
+    void Update () {
+
+
         if (game.currentState == GameState.ready)
         {
             Debug.Log("SERVING!!!");
@@ -76,10 +85,14 @@ public class GameScript : MonoBehaviour {
             TriggerPaddlePrediction();
             game.currentState = GameState.running;
         }
+
+
         if (game.currentState == GameState.running)
         {
 
         }
+
+
         if (game.currentState == GameState.scored)
         {
             ball.ResetPosition();
@@ -90,10 +103,14 @@ public class GameScript : MonoBehaviour {
 
             game.currentState = GameState.ready;
         }
+
     }
 
     bool InitialiseGameState()
     {
+        game = new GameStruct();
+        game.names = new string[4];
+        game.scores = new int[4];
 
         ball = GameObject.Find("PhysicsBall").GetComponent<BallScript>();
         uiReference = GameObject.Find("Interface").GetComponent<InterfaceScript>();
@@ -113,6 +130,7 @@ public class GameScript : MonoBehaviour {
             if (paddles[i] == null) return false;
         }
 
+        /*set paddle controllers
         if (game.paddles == GamePaddles.two)
         {
             if (game.playerRules == GamePlayerRules.single)
@@ -134,17 +152,19 @@ public class GameScript : MonoBehaviour {
                 paddles[2].SetControllerType(2);
                 paddles[3].SetControllerType(2);
             }
-        }
+        }*/
 
-
-        if (uiReference == null) return false;
-        else uiReference.Init(this);
 
         if (LoadSettings() == false)
         {
             Debug.Log("could not load settings");
             return false;
         }
+
+        //load ui after settings to get player names
+        if (uiReference == null) return false;
+        else uiReference.Init(this);
+
 
         return true;
 
@@ -153,7 +173,7 @@ public class GameScript : MonoBehaviour {
     public void Scored(int goalNumber)
     {
         game.currentState = GameState.scored;
-        if (game.paddles == GamePaddles.two)
+        if (game.numberOfPaddles == 2)
         {
             Debug.Log("SCORED" + goalNumber);
             if (goalNumber == 0)
@@ -168,16 +188,15 @@ public class GameScript : MonoBehaviour {
             game.scores[playerThatScored] += 1;
             uiReference.UpdateScores();
         }
-        if (game.paddles == GamePaddles.four)
+        if (game.numberOfPaddles == 4)
         {
             Debug.Log("SCORED" + goalNumber);
         }
     }
 
-    public int ReturnNoOfPaddles()
+    public int returnNoOfPaddles()
     {
-        if (game.paddles == GamePaddles.two) return 2;
-        else return 4;
+        return game.numberOfPaddles;
     }
 
     public void PaddleWasHit() //when a paddle is hit this function is called from ballscript, solely so we can run a function on all paddles, that calls computer script to update prediction
@@ -187,17 +206,9 @@ public class GameScript : MonoBehaviour {
 
     void TriggerPaddlePrediction() //when a paddle is hit this function is called from ballscript, solely so we can run a function on all paddles, that calls computer script to update prediction
     {
-        if (game.paddles == GamePaddles.two)
+        for (var i = 0; i < game.numberOfPaddles; i++)
         {
-            paddles[0].DoComputerPrediction();
-            paddles[1].DoComputerPrediction();
-        }
-        else if (game.paddles == GamePaddles.four)
-        {
-            paddles[0].DoComputerPrediction();
-            paddles[1].DoComputerPrediction();
-            paddles[2].DoComputerPrediction();
-            paddles[3].DoComputerPrediction();
+            paddles[i].DoComputerPrediction();
         }
     }
 
@@ -212,6 +223,72 @@ public class GameScript : MonoBehaviour {
         else
         {
             settingsScript = settingsHolder.GetComponent<SettingsScript>();
+            customGameScript = settingsHolder.GetComponent<SettingsCustomGameScript>();
+        }
+
+
+        //set player names (we have no variables/menu for this yet)
+        game.names[0] = "Player1";
+        game.names[1] = "Player2";
+        game.names[2] = "Player3";
+        game.names[3] = "Player4";
+
+
+        //we check the custom game settings for gameplay rules even if not launching a custom game because i'm lazy, it's set from the main menu buttons
+        if (customGameScript.gameplayRules == 0) //classic game mode
+        {
+            Debug.Log("CLASSIC GAME MODE LOADING");
+            game.rules = GameRules.classic;
+            game.numberOfPaddles = 2;
+
+            paddles[0].SetControllerType(0); //controller type 0 = keyboard, 1 = mouse, 2 = computer
+            paddles[1].SetControllerType(2);
+            paddles[2].DisablePaddle();
+            paddles[3].DisablePaddle();
+        }
+        if (customGameScript.gameplayRules == 1) //modern game mode
+        {
+            Debug.Log("MODERN GAME MODE LOADING");
+            game.rules = GameRules.modern;
+            game.numberOfPaddles = 2;
+
+            paddles[0].SetControllerType(0); //controller type 0 = keyboard, 1 = mouse, 2 = computer
+            paddles[1].SetControllerType(2);
+            paddles[2].DisablePaddle();
+            paddles[3].DisablePaddle();
+        }
+        if (customGameScript.gameplayRules == 2) //4 player mode
+        {
+            Debug.Log("4PLAYER GAME MODE LOADING");
+            game.rules = GameRules.fourplayer;
+            game.numberOfPaddles = 4;
+
+            paddles[0].SetControllerType(0); //controller type 0 = keyboard, 1 = mouse, 2 = computer
+            paddles[1].SetControllerType(0);
+            paddles[2].SetControllerType(0);
+            paddles[3].SetControllerType(0);
+        }
+
+        if (customGameScript.launchCustom == true) //launched from custom game menu
+        {
+            if (customGameScript.gameplayRules == 2) //2 player
+            {
+                paddles[0].SetControllerType(customGameScript.slotControl1); //controller type 0 = keyboard, 1 = mouse, 2 = computer
+                paddles[1].SetControllerType(customGameScript.slotControl2);
+                paddles[2].DisablePaddle();
+                paddles[3].DisablePaddle();
+            }
+            else //4 player
+            {
+                paddles[0].SetControllerType(customGameScript.slotControl1); //controller type 0 = keyboard, 1 = mouse, 2 = computer
+                paddles[1].SetControllerType(customGameScript.slotControl2);
+                paddles[2].SetControllerType(customGameScript.slotControl3);
+                paddles[3].SetControllerType(customGameScript.slotControl4);
+            }
+        }
+        else //launched from main menu button
+        {
+
         }
 
         if (settingsScript.camera3D)

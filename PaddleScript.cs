@@ -26,7 +26,7 @@ public class PaddleScript : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        assignedControllerType = ControllerType.none;
+        //assignedControllerType = ControllerType.none;
 
         initialPosition = transform.position;
 

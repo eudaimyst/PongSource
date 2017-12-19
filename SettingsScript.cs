@@ -13,13 +13,17 @@ public class SettingsScript : MonoBehaviour {
 
     public class KeyboardControls
     {
+        /*
         public KeyCode up;
         public KeyCode down;
         public KeyCode left;
         public KeyCode right;
         public KeyCode ability;
+        */
+        public int test = 0;
     }
-    public KeyboardControls[] keyboard = new KeyboardControls[4];
+    public KeyboardControls[] keyboardControls;
+
     public int controller1;
     public int controller2;
     public int controller3;
@@ -53,6 +57,13 @@ public class SettingsScript : MonoBehaviour {
 
     public void SetDefaults()
     {
+        keyboardControls = new KeyboardControls[4];
+        Debug.Log(keyboardControls.Length);
+        keyboardControls[0].test = 5;
+        /*
+        keyboardControls[0].up = KeyCode.W;
+        keyboardControls[0].down = KeyCode.S;
+        */
 
         camera3D = false;
         cameraPlayerOnBottom = false;

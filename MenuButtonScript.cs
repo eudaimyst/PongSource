@@ -9,7 +9,7 @@ using UnityEditor;
 
 public class MenuButtonScript : MonoBehaviour {
 
-    public enum MenuOptions { None, Classic, Campaign, Modern, CustomGame, Multiplayer, Settings, Quit, BackToMainMenu };
+    public enum MenuOptions { None, Classic, Campaign, Modern, CustomGame, Multiplayer, Settings, Quit, BackToMainMenu, CustomGamePlay };
     public MenuOptions menuOption;
 
     public enum SettingsToggles { none, camera2D, camera3D, cameraPlayerBottom, cameraBallFollow, cameraSwingToggle, graphicsWindowMode, gameplayBallTrail, gameplayCosmetics, gameplayColorPaddles, gameplayMovementIndicator, gameplayHitEffect};
@@ -69,6 +69,7 @@ public class MenuButtonScript : MonoBehaviour {
         Debug.Log("Button pressed " + menuOption);
         if (menuOption == MenuOptions.Classic)
         {
+            settingsCustomGameScript.gameplayRules = 0;
             SceneManager.LoadScene("2DGameScene");
         }
         else if (menuOption == MenuOptions.Campaign)
@@ -77,11 +78,18 @@ public class MenuButtonScript : MonoBehaviour {
         }
         else if (menuOption == MenuOptions.Modern)
         {
+            settingsCustomGameScript.gameplayRules = 1;
+            SceneManager.LoadScene("2DGameScene");
 
         }
         else if (menuOption == MenuOptions.CustomGame)
         {
             mainMenu.GoToMenu(MenuMainScript.MenuStates.CustomGame);
+        }
+        else if (menuOption == MenuOptions.CustomGamePlay)
+        {
+            settingsCustomGameScript.launchCustom = true;
+            SceneManager.LoadScene("2DGameScene");
         }
         else if (menuOption == MenuOptions.Multiplayer)
         {

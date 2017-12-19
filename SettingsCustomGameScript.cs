@@ -6,6 +6,8 @@ public class SettingsCustomGameScript : MonoBehaviour {
 
     public int gameplayRules;
 
+    public bool launchCustom;
+
     public int slotControl1;
     public int slotControl2;
     public int slotControl3;
@@ -36,6 +38,8 @@ public class SettingsCustomGameScript : MonoBehaviour {
     {
 
         gameplayRules = 0;
+        launchCustom = false;
+
         slotControl1 = 0;
         slotControl2 = 0;
         slotControl3 = 0;

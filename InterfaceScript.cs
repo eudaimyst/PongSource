@@ -8,15 +8,17 @@ public class InterfaceScript : MonoBehaviour
 
     GameScript gameReference;
 
-    public Text Player1Name;
-    public Text Player1Score;
+    public GameObject twoPlayerInterface;
+    public GameObject fourPlayerInterface;
 
-    public Text Player2Name;
-    public Text Player2Score;
+    public Image[] PlayerKingImages = new Image[4];
+    public Text[] PlayerNames = new Text[4];
+    public Text[] PlayerScores = new Text[4];
 
     // Use this for initialization
     void Start()
     {
+
     }
 
     // Update is called once per frame
@@ -33,10 +35,21 @@ public class InterfaceScript : MonoBehaviour
 
     public void UpdateScores()
     {
-        Player1Name.text = gameReference.game.names[0].ToString();
-        Player2Name.text = gameReference.game.names[1].ToString();
-        Player1Score.text = gameReference.game.scores[0].ToString();
-        Player2Score.text = gameReference.game.scores[1].ToString();
+        if (gameReference.returnNoOfPaddles() == 2)
+        {
+            twoPlayerInterface.SetActive(true);
+            fourPlayerInterface.SetActive(false);
+        }
+        if (gameReference.returnNoOfPaddles() == 4)
+        {
+            twoPlayerInterface.SetActive(true);
+            fourPlayerInterface.SetActive(true);
+        }
+        for (var i = 0; i < gameReference.returnNoOfPaddles(); i++)
+        {
+            PlayerNames[i].text = gameReference.game.names[i].ToString();
+            PlayerScores[i].text = gameReference.game.scores[i].ToString();
+        }
 
     }
 }
